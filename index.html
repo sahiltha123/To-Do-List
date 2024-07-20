@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List Application</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Optional: Custom styles for completed tasks */
+        .completed {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto max-w-md mt-10 p-6 bg-white rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold text-center mb-6">To-Do List</h2>
+        <form id="todoForm" class="flex mb-4">
+            <input type="text" id="todoInput" class="w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" placeholder="Add a new task..." autocomplete="off">
+            <button type="submit" class="bg-blue-500 text-white py-2 px-4 ml-2 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600">Add</button>
+        </form>
+        <ul id="todoList" class="space-y-2">
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const todoList = JSON.parse(localStorage.getItem('todoList')) || [];
+            updateTodoList(todoList);
+        });
+
+        const todoForm = document.getElementById('todoForm');
+        const todoInput = document.getElementById('todoInput');
+        const todoListElement = document.getElementById('todoList');
+
+        todoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const todoText = todoInput.value.trim();
+            if (todoText === '') return;
+
+            const todoItem = {
+                id: Date.now(),
+                text: todoText,
+                completed: false
+            };
+
+            const todoList = JSON.parse(localStorage.getItem('todoList')) || [];
+            todoList.push(todoItem);
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+
+            updateTodoList(todoList);
+
+            todoInput.value = '';
+        });
+
+        function updateTodoList(todoList) {
+            todoListElement.innerHTML = '';
+            todoList.forEach(todo => {
+                const todoItem = document.createElement('li');
+                todoItem.classList.add('flex', 'justify-between', 'items-center', 'px-4', 'py-2', 'border', 'border-gray-300', 'rounded-md', 'bg-white', 'shadow-sm');
+
+                if (todo.completed) {
+                    todoItem.classList.add('completed');
+                }
+
+                todoItem.innerHTML = `
+                    <span class="text-lg ${todo.completed ? 'line-through' : ''}">${todo.text}</span>
+                    <div>
+                        <button class="text-sm text-gray-500 mr-2 focus:outline-none" data-id="${todo.id}" onclick="toggleCompletion(${todo.id})">${todo.completed ? 'Undo' : 'Done'}</button>
+                        <button class="text-sm text-red-500 focus:outline-none" data-id="${todo.id}" onclick="deleteTodo(${todo.id})">Delete</button>
+                    </div>
+                `;
+
+                todoListElement.appendChild(todoItem);
+            });
+        }
+
+        // Function to toggle completion status
+        function toggleCompletion(id) {
+            let todoList = JSON.parse(localStorage.getItem('todoList')) || [];
+            todoList = todoList.map(todo => {
+                if (todo.id === id) {
+                    todo.completed = !todo.completed;
+                }
+                return todo;
+            });
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+            updateTodoList(todoList);
+        }
+
+        // Function to delete a todo item
+        function deleteTodo(id) {
+            let todoList = JSON.parse(localStorage.getItem('todoList')) || [];
+            todoList = todoList.filter(todo => todo.id !== id);
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+            updateTodoList(todoList);
+        }
+    </script>
+
+</body>
+</html>
